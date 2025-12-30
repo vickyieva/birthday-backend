@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+python-dotenv
+apscheduler
+requests
+firebase-admin
+email-validator
+apscheduler

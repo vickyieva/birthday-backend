@@ -1,0 +1,63 @@
+from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from firebase_admin import credentials
+import firebase_admin
+
+from app.routers.users import router as users_router, get_current_user
+from app.routers.birthdays import router as birthdays_router
+from app.scheduler import start_scheduler
+from app.database import Base, engine
+from app import models
+from app.routers.recipients import router as recipients_router
+
+
+
+# 🔐 Firebase
+cred = credentials.Certificate(
+    "C:/Users/user/StudioProjects/birthday_wisher/backend/"
+    "birthday-auto-wisher-firebase-adminsdk-fbsvc-7e41082a44.json"
+)
+
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
+
+app = FastAPI(
+    title="Birthday Auto Wisher API",
+    version="1.0.0",
+)
+
+# 🗄️ Database
+Base.metadata.create_all(bind=engine)
+
+# 🌍 CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 🧪 AUTH TEST
+@app.get("/auth-test")
+def auth_test(user=Depends(get_current_user)):
+    return user
+
+# 📌 ROUTERS (PREFIX ONLY HERE)
+app.include_router(users_router, prefix="/users", tags=["Users"])
+app.include_router(birthdays_router, prefix="/birthdays", tags=["Birthdays"])
+app.include_router(recipients_router, prefix="/recipients", tags=["Recipients"])
+
+# ⏰ Scheduler
+@app.on_event("startup")
+async def startup_event():
+    start_scheduler()
+
+# ❤️ Health
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "Birthday Auto Wisher API running"}
+
+@app.get("/__routes")
+def show_routes():
+    return [route.path for route in app.router.routes]
