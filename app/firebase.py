@@ -1,14 +1,12 @@
 import firebase_admin
 from firebase_admin import credentials, auth
+import json
+import os
 
-# Initialize Firebase ONCE
 if not firebase_admin._apps:
-    cred = credentials.Certificate(
-        "C:/Users/user/StudioProjects/birthday_wisher/backend/"
-        "birthday-auto-wisher-firebase-adminsdk-fbsvc-7e41082a44.json"
-    )
+    cred_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    cred = credentials.Certificate(json.loads(cred_json))
     firebase_admin.initialize_app(cred)
-
 
 def verify_token(token: str):
     """
