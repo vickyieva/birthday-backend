@@ -1,15 +1,29 @@
+import os
+import json
 import firebase_admin
 from firebase_admin import credentials, auth
-import json
-import os
 
-if not firebase_admin._apps:
-    cred_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-    cred = credentials.Certificate(json.loads(cred_json))
-    firebase_admin.initialize_app(cred)
+def init_firebase():
+    if firebase_admin._apps:
+        return
 
-def verify_token(token: str):
-    """
-    Verifies Firebase ID token and returns decoded payload
-    """
-    return auth.verify_id_token(token)
+    # Railway / production
+    json_env = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+    if json_env:
+        cred_dict = json.loads(json_env)
+        cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred)
+        return
+
+    # Local development fallback
+    local_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if local_path:
+        cred = credentials.Certificate(local_path)
+        firebase_admin.initialize_app(cred)
+        return
+
+    raise RuntimeError("Firebase credentials not found")
+
+# 🔥 Initialize immediately
+init_firebase()

@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from firebase_admin import auth
-
+import app.firebase  # 🔥 ENSURES FIREBASE IS INITIALIZED
 from app.database import get_db
 from app.models import User
 

@@ -12,14 +12,6 @@ from app.routers.recipients import router as recipients_router
 
 
 
-# 🔐 Firebase
-cred = credentials.Certificate(
-    "C:/Users/user/StudioProjects/birthday_wisher/backend/"
-    "birthday-auto-wisher-firebase-adminsdk-fbsvc-7e41082a44.json"
-)
-
-if not firebase_admin._apps:
-    firebase_admin.initialize_app(cred)
 
 app = FastAPI(
     title="Birthday Auto Wisher API",
