@@ -14,10 +14,18 @@ import json
 import os
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(
-        json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
-    )
-    firebase_admin.initialize_app(cred)
+    json_env = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+    if json_env:
+        cred_dict = json.loads(json_env)
+        cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred)
+
+    # Local development fallback
+    local_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if local_path:
+        cred = credentials.Certificate(local_path)
+        firebase_admin.initialize_app(cred)
 
 
 app = FastAPI(
