@@ -10,7 +10,14 @@ from app.database import Base, engine
 from app import models
 from app.routers.recipients import router as recipients_router
 
+import json
+import os
 
+if not firebase_admin._apps:
+    cred = credentials.Certificate(
+        json.loads(os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+    )
+    firebase_admin.initialize_app(cred)
 
 
 app = FastAPI(
