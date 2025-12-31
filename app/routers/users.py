@@ -1,12 +1,41 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from firebase_admin import auth
-from app.dependencies import get_current_user
 from app.database import get_db
 from app.models import User
 from app.schemas import UserWithBirthdays
 
 router = APIRouter()
+
+def get_current_user(
+        request: Request,
+        db: Session = Depends(get_db),
+):
+    auth_header = request.headers.get("Authorization")
+
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing token")
+
+    token = auth_header.split(" ")[1]
+
+    try:
+        decoded = auth.verify_id_token(token)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    firebase_uid = decoded["uid"]
+    email = decoded.get("email")
+
+    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+
+    # 🔥 AUTO-CREATE USER
+    if not user:
+        user = User(firebase_uid=firebase_uid, email=email)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    return user
 
 
 # --------------------------------------------------
