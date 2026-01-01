@@ -57,7 +57,7 @@ def create_recipient(
 # --------------------------------------------------
 # LIST RECIPIENTS (FOR CURRENT USER)
 # --------------------------------------------------
-@router.get("/", response_model=list[schemas.RecipientResponse])
+@router.get("/", response_model=list[RecipientResponse])
 def list_recipients(
         user: User = Depends(get_current_user),
         db: Session = Depends(get_db),
