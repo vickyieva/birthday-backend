@@ -18,12 +18,26 @@ def create_birthday(
         user: User = Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    # 🔒 Ensure recipient belongs to user
+    recipient = (
+        db.query(models.Recipient)
+        .filter(
+            models.Recipient.id == birthday.recipient_id,
+            models.Recipient.user_id == user.id,
+            )
+        .first()
+    )
+
+    if not recipient:
+        raise HTTPException(status_code=400, detail="Invalid recipient")
+
     new_birthday = Birthday(
         name=birthday.name,
         birth_date=birthday.birth_date,
         channel=birthday.channel,
         message=birthday.message,
         user_id=user.id,
+        recipient_id=birthday.recipient_id,  # ✅ FIX
     )
 
     db.add(new_birthday)
@@ -31,6 +45,7 @@ def create_birthday(
     db.refresh(new_birthday)
 
     return new_birthday
+
 
 
 # ---------------------------

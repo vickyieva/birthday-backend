@@ -37,8 +37,12 @@ class BirthdayBase(BaseModel):
     message: Optional[str] = None
 
 
-class BirthdayCreate(BirthdayBase):
-    pass
+class BirthdayCreate(BaseModel):
+    name: str
+    birth_date: date
+    channel: str
+    message: Optional[str] = None
+    recipient_id: int   # ✅ REQUIRED
 
 
 # -------------------------
