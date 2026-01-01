@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.database import get_db
-from app.user import get_current_user
+from app.routers.users import get_current_user
 from app.models import Recipient, User
 from app.schemas import RecipientCreate, RecipientResponse
 
