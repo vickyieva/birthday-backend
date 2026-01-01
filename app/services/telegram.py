@@ -17,3 +17,6 @@ def send_telegram_message(chat_id: int, text: str):
 
     response = requests.post(url, json=payload, timeout=10)
     response.raise_for_status()
+
+def telegram_invite_link(recipient_id: int) -> str:
+    return f"https://t.me/YOUR_BOT_USERNAME?start=recipient_{recipient_id}"

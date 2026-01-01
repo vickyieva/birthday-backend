@@ -78,26 +78,53 @@ def birthday_job():
             .filter(
                 Birthday.is_active == True,
                 Birthday.last_sent.is_(None),
+                Birthday.recipient_id.isnot(None),  # 🔥 CRITICAL
                 func.strftime("%m-%d", Birthday.birth_date)
                 == today.strftime("%m-%d"),
                 )
             .all()
         )
 
-        print("🎯 MATCHED BIRTHDAYS:")
-        for b in birthdays:
-            print(f"  → id={b.id}, name={b.name}, birth_date={b.birth_date}")
+        print(f"🎯 MATCHED BIRTHDAYS: {len(birthdays)}")
+
+        sent_count = 0
 
         for birthday in birthdays:
+            recipient = birthday.recipient
+
+            if not recipient:
+                print(f"⚠️ Birthday {birthday.id} has no recipient")
+                continue
+
+            # Check channel availability BEFORE sending
+            if birthday.channel == "telegram" and not recipient.telegram_chat_id:
+                print(f"⚠️ Recipient {recipient.id} has no telegram_chat_id")
+                continue
+
+            if birthday.channel == "email" and not recipient.email:
+                print(f"⚠️ Recipient {recipient.id} has no email")
+                continue
+
+            if birthday.channel == "sms" and not recipient.phone_number:
+                print(f"⚠️ Recipient {recipient.id} has no phone number")
+                continue
+
+            # ✅ Send
             send_birthday_message(birthday)
+
+            # ✅ Mark as sent ONLY if message was actually sent
             birthday.last_sent = datetime.utcnow()
+            db.add(birthday)
+            sent_count += 1
+
+            print(f"✅ SENT: {birthday.name}")
 
         db.commit()
 
-        if birthdays:
-            print(f"✅ SENT {len(birthdays)} birthday message(s)")
+        if sent_count == 0:
+            print("ℹ️ No messages sent (missing contacts or recipients)")
         else:
-            print("ℹ️ No birthdays to send today")
+            print(f"✅ Successfully sent {sent_count} birthday message(s)")
 
     except Exception as e:
         db.rollback()
