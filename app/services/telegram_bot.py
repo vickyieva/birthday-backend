@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from sqlalchemy.orm import Session
+
 from app.database import get_db
 from app import models
 
 router = APIRouter()
 
 
-@router.post("/telegram/webhook")
+@router.post("/webhook")
 async def telegram_webhook(
         request: Request,
         db: Session = Depends(get_db),
@@ -21,8 +22,12 @@ async def telegram_webhook(
     chat = message.get("chat", {})
     chat_id = str(chat.get("id"))
 
+    # Expected: /start recipient_12
     if text.startswith("/start recipient_"):
-        recipient_id = int(text.split("_")[1])
+        try:
+            recipient_id = int(text.split("_")[1])
+        except ValueError:
+            return {"ok": True}
 
         recipient = (
             db.query(models.Recipient)
@@ -33,5 +38,6 @@ async def telegram_webhook(
         if recipient:
             recipient.telegram_chat_id = chat_id
             db.commit()
+            print(f"✅ Linked Telegram chat_id={chat_id} to recipient={recipient.id}")
 
     return {"ok": True}
