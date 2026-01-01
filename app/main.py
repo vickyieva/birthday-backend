@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import credentials
 import firebase_admin
-from app.routers.telegram_bot import router as telegram_router
+from app.services.telegram_bot import router as telegram_router
 from app.routers.users import router as users_router, get_current_user
 from app.routers.birthdays import router as birthdays_router
 from app.scheduler import start_scheduler
