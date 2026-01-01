@@ -18,7 +18,7 @@ def telegram_invite_link(recipient_id: int) -> str:
     Generates a Telegram deep link that binds
     a Telegram chat to a recipient record.
     """
-    BOT_USERNAME = "YOUR_BOT_USERNAME"  # 👈 replace once
+    BOT_USERNAME = "birthday_auto_wisher_bot"  # 👈 replace once
     return f"https://t.me/{BOT_USERNAME}?start=recipient_{recipient_id}"
 
 
@@ -63,8 +63,8 @@ def list_recipients(
         db: Session = Depends(get_db),
 ):
     recipients = (
-        db.query(models.Recipient)
-        .filter(models.Recipient.user_id == user.id)
+        db.query(Recipient)
+        .filter(Recipient.user_id == user.id)
         .all()
     )
 
