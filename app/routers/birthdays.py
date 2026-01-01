@@ -160,8 +160,8 @@ def delete_birthday(
 @router.post("/run-scheduler")
 def run_scheduler_test(user=Depends(get_current_user)):
     from app.scheduler import birthday_job
-    birthday_job()
-    return {"status": "scheduler executed"}
+    result = birthday_job()
+    return result
 
 
 # ---------------------------

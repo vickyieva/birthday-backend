@@ -57,31 +57,35 @@ def create_recipient(
 # --------------------------------------------------
 # LIST RECIPIENTS (FOR CURRENT USER)
 # --------------------------------------------------
-@router.get("/", response_model=List[RecipientResponse])
+@router.get("/", response_model=list[schemas.RecipientResponse])
 def list_recipients(
         user: User = Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     recipients = (
-        db.query(Recipient)
-        .filter(Recipient.user_id == user.id)
-        .order_by(Recipient.created_at.desc())
+        db.query(models.Recipient)
+        .filter(models.Recipient.user_id == user.id)
         .all()
     )
 
-    return [
-        {
+    result = []
+
+    for r in recipients:
+        result.append({
             "id": r.id,
             "name": r.name,
             "email": r.email,
             "phone_number": r.phone_number,
             "telegram_chat_id": r.telegram_chat_id,
+            "telegram_link": (
+                f"https://t.me/birthday_auto_wisher_bot?start=recipient_{r.id}"
+                if not r.telegram_chat_id
+                else None
+            ),
             "created_at": r.created_at,
-            "telegram_link": telegram_invite_link(r.id),
-        }
-        for r in recipients
-    ]
+        })
 
+    return result
 
 # --------------------------------------------------
 # DELETE RECIPIENT

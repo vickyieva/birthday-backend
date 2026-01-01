@@ -72,66 +72,47 @@ def birthday_job():
     db: Session = SessionLocal()
     today = date.today()
 
+    sent = []
+    skipped = []
+
     try:
         birthdays = (
             db.query(Birthday)
             .filter(
                 Birthday.is_active == True,
                 Birthday.last_sent.is_(None),
-                Birthday.recipient_id.isnot(None),  # 🔥 CRITICAL
                 func.strftime("%m-%d", Birthday.birth_date)
                 == today.strftime("%m-%d"),
                 )
             .all()
         )
 
-        print(f"🎯 MATCHED BIRTHDAYS: {len(birthdays)}")
+        for b in birthdays:
+            recipient = b.recipient
 
-        sent_count = 0
-
-        for birthday in birthdays:
-            recipient = birthday.recipient
-
-            if not recipient:
-                print(f"⚠️ Birthday {birthday.id} has no recipient")
+            if b.channel == "telegram" and not recipient.telegram_chat_id:
+                skipped.append(
+                    f"{recipient.name} (Telegram not linked)"
+                )
                 continue
 
-            # Check channel availability BEFORE sending
-            if birthday.channel == "telegram" and not recipient.telegram_chat_id:
-                print(f"⚠️ Recipient {recipient.id} has no telegram_chat_id")
-                continue
-
-            if birthday.channel == "email" and not recipient.email:
-                print(f"⚠️ Recipient {recipient.id} has no email")
-                continue
-
-            if birthday.channel == "sms" and not recipient.phone_number:
-                print(f"⚠️ Recipient {recipient.id} has no phone number")
-                continue
-
-            # ✅ Send
-            send_birthday_message(birthday)
-
-            # ✅ Mark as sent ONLY if message was actually sent
-            birthday.last_sent = datetime.utcnow()
-            db.add(birthday)
-            sent_count += 1
-
-            print(f"✅ SENT: {birthday.name}")
+            send_birthday_message(b)
+            b.last_sent = datetime.utcnow()
+            sent.append(recipient.name)
 
         db.commit()
 
-        if sent_count == 0:
-            print("ℹ️ No messages sent (missing contacts or recipients)")
-        else:
-            print(f"✅ Successfully sent {sent_count} birthday message(s)")
-
     except Exception as e:
         db.rollback()
-        print("❌ Scheduler error:", str(e))
+        raise
 
     finally:
         db.close()
+
+    return {
+        "sent": sent,
+        "skipped": skipped,
+    }
 
 
 # --------------------------------------------------
