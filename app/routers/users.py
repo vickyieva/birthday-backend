@@ -76,7 +76,10 @@ def get_user(firebase_uid: str, db: Session = Depends(get_db)):
     return user
 
 @router.get("/invite-link")
-def get_invite_link(user: User = Depends(get_current_user)):
+def get_invite_link(user=Depends(get_current_user)):
+    """
+    Returns a unique invite link for this user
+    """
     return {
-        "link": f"https://t.me/birthday_auto_wisher_bot?start=user_{user.invite_token}"
+        "invite_link": f"https://t.me/birthday_auto_wisher_bot?start=user_{user.id}"
     }
