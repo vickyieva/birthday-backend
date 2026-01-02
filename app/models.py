@@ -5,18 +5,21 @@ from datetime import datetime
 from app.database import Base
 import uuid
 
+# =========================
+# USER
+# =========================
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
     firebase_uid = Column(String, unique=True, index=True)
-    email = Column(String, unique=True)
+    email = Column(String, unique=True, nullable=True)
 
-    invite_token = Column(
-        String,
-        unique=True,
-        index=True,
-        default=lambda: str(uuid.uuid4()),
+    # 🔥 MUST EXIST
+    birthdays = relationship(
+        "Birthday",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
     recipients = relationship(
@@ -26,24 +29,23 @@ class User(Base):
     )
 
 
-
-
+# =========================
+# RECIPIENT
+# =========================
 class Recipient(Base):
     __tablename__ = "recipients"
 
     id = Column(Integer, primary_key=True)
-
     name = Column(String, nullable=False)
 
-    telegram_chat_id = Column(String, unique=True, index=True)
+    telegram_chat_id = Column(String, unique=True, nullable=True)
     telegram_username = Column(String, nullable=True)
 
     email = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)
 
-    # NEW
-    birth_day = Column(Integer, nullable=True)    # 1–31
-    birth_month = Column(Integer, nullable=True)  # 1–12
+    birth_day = Column(Integer, nullable=True)
+    birth_month = Column(Integer, nullable=True)
 
     user_id = Column(
         Integer,
@@ -51,13 +53,17 @@ class Recipient(Base):
         nullable=False,
     )
 
-    user = relationship("User", back_populates="recipients")
+    user = relationship(
+        "User",
+        back_populates="recipients",
+    )
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
-
-
+# =========================
+# BIRTHDAY
+# =========================
 class Birthday(Base):
     __tablename__ = "birthdays"
 
@@ -73,23 +79,26 @@ class Birthday(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     last_sent = Column(DateTime, nullable=True)
 
-    # 🔥 THIS WAS MISSING OR BROKEN
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
 
-    # ✅ BACK-REFERENCE
-    user = relationship("User", back_populates="birthdays")
-
     recipient_id = Column(
         Integer,
         ForeignKey("recipients.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
+    )
+
+    # 🔥 BOTH SIDES MUST MATCH
+    user = relationship(
+        "User",
+        back_populates="birthdays",
     )
 
     recipient = relationship("Recipient")
+
 
 class TelegramSession(Base):
     __tablename__ = "telegram_sessions"
