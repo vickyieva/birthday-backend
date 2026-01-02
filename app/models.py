@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, Date, Boolean, ForeignKey, DateT
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
-
+import uuid
 
 class User(Base):
     __tablename__ = "users"
@@ -12,10 +12,11 @@ class User(Base):
     firebase_uid = Column(String, unique=True, index=True)
     email = Column(String, unique=True)
 
-    birthdays = relationship(
-        "Birthday",
-        back_populates="user",
-        cascade="all, delete-orphan",
+    invite_token = Column(
+        String,
+        unique=True,
+        index=True,
+        default=lambda: str(uuid.uuid4()),
     )
 
     recipients = relationship(
@@ -26,15 +27,23 @@ class User(Base):
 
 
 
+
 class Recipient(Base):
     __tablename__ = "recipients"
 
     id = Column(Integer, primary_key=True)
+
     name = Column(String, nullable=False)
+
+    telegram_chat_id = Column(String, unique=True, index=True)
+    telegram_username = Column(String, nullable=True)
 
     email = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)
-    telegram_chat_id = Column(String, nullable=True)
+
+    # NEW
+    birth_day = Column(Integer, nullable=True)    # 1–31
+    birth_month = Column(Integer, nullable=True)  # 1–12
 
     user_id = Column(
         Integer,
@@ -42,12 +51,10 @@ class Recipient(Base):
         nullable=False,
     )
 
-    user = relationship(
-        "User",
-        back_populates="recipients",
-    )
+    user = relationship("User", back_populates="recipients")
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
 
 
 
@@ -84,3 +91,20 @@ class Birthday(Base):
 
     recipient = relationship("Recipient")
 
+class TelegramSession(Base):
+    __tablename__ = "telegram_sessions"
+
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(String, unique=True, index=True)
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    recipient_id = Column(Integer, ForeignKey("recipients.id"), nullable=True)
+
+    step = Column(String, nullable=False)  # e.g. ask_dob, ask_email, ask_phone
+    temp_data = Column(String, nullable=True)  # JSON string if needed
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
