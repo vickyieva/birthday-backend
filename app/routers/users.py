@@ -7,12 +7,12 @@ from app.schemas import UserWithBirthdays
 
 router = APIRouter()
 
+# app/routers/users.py
 def get_current_user(
         request: Request,
         db: Session = Depends(get_db),
-):
+) -> User:
     auth_header = request.headers.get("Authorization")
-    print("🔥 AUTH HEADER:", auth_header)
 
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing token")
@@ -29,9 +29,12 @@ def get_current_user(
 
     user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
 
-    # 🔥 AUTO-CREATE USER
+    # ✅ AUTO-CREATE USER (CRITICAL)
     if not user:
-        user = User(firebase_uid=firebase_uid, email=email)
+        user = User(
+            firebase_uid=firebase_uid,
+            email=email,
+        )
         db.add(user)
         db.commit()
         db.refresh(user)
