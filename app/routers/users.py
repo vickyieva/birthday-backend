@@ -6,7 +6,7 @@ from app.models import User
 from app.schemas import UserWithBirthdays
 
 router = APIRouter()
-
+print("🔥 USERS ROUTER LOADED")
 def get_current_user(
         request: Request,
         db: Session = Depends(get_db),
@@ -79,7 +79,6 @@ def get_user(firebase_uid: str, db: Session = Depends(get_db)):
     return user
 
 @router.get("/invite-link")
-def invite_link(user: User = Depends(get_current_user)):
-    return {
-        "link": "http://t.me/birthday_auto_wisher_bot"
-    }
+def invite_link(user=Depends(get_current_user)):
+    print("🔥 INVITE LINK HIT — USER:", user.id)
+    return {"ok": True}
