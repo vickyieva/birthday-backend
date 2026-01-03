@@ -7,7 +7,6 @@ from app.schemas import UserWithBirthdays
 
 router = APIRouter()
 
-# app/routers/users.py
 def get_current_user(
         request: Request,
         db: Session = Depends(get_db),
@@ -29,7 +28,7 @@ def get_current_user(
 
     user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
 
-    # ✅ AUTO-CREATE USER (CRITICAL)
+    # 🔥 THIS IS THE FIX — AUTO CREATE
     if not user:
         user = User(
             firebase_uid=firebase_uid,
@@ -80,13 +79,7 @@ def get_user(firebase_uid: str, db: Session = Depends(get_db)):
     return user
 
 @router.get("/invite-link")
-def get_invite_link(user: User = Depends(get_current_user)):
-    # """
-    # Generates a user-based Telegram invite link
-    # """
-    base_url = "http://t.me/birthday_auto_wisher_bot"
-    token = f"user_{user.id}"
-
+def invite_link(user: User = Depends(get_current_user)):
     return {
-        "invite_link": f"{base_url}?start={token}"
+        "link": f"https://t.me/YOUR_BOT_USERNAME?start=user_{user.id}"
     }
