@@ -77,5 +77,13 @@ def get_user(firebase_uid: str, db: Session = Depends(get_db)):
     return user
 
 @router.get("/invite-link")
-def invite_link():
-    return {"ok": True}
+def get_invite_link(user: User = Depends(get_current_user)):
+    # """
+    # Generates a user-based Telegram invite link
+    # """
+    base_url = "http://t.me/birthday_auto_wisher_bot"
+    token = f"user_{user.id}"
+
+    return {
+        "invite_link": f"{base_url}?start={token}"
+    }
