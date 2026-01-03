@@ -79,6 +79,5 @@ def get_user(firebase_uid: str, db: Session = Depends(get_db)):
     return user
 
 @router.get("/invite-link")
-def invite_link(user=Depends(get_current_user)):
-    print("🔥 INVITE LINK HIT — USER:", user.id)
-    return {"ok": True}
+def invite_link():
+    return {"status": "HARDCODE_OK"}
