@@ -81,5 +81,5 @@ def get_user(firebase_uid: str, db: Session = Depends(get_db)):
 @router.get("/invite-link")
 def invite_link(user: User = Depends(get_current_user)):
     return {
-        "link": f"https://t.me/YOUR_BOT_USERNAME?start=user_{user.id}"
+        "link": "http://t.me/birthday_auto_wisher_bot"
     }
