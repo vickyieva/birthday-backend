@@ -12,6 +12,7 @@ def get_current_user(
         db: Session = Depends(get_db),
 ):
     auth_header = request.headers.get("Authorization")
+    print("🔥 AUTH HEADER:", auth_header)
 
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing token")
